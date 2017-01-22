@@ -23,21 +23,123 @@
 	</head>
 	<body>
 		<div class="reveal">
-			<div class="slides">
-				<section>
-          <section>
-            <p class="fragement" data-fragment-index="1"><img src="./img/skyring-inverted.png" style="border:0; background: transparent;"/></p>
-            <p class="fragment fade-in" data-fragment-index="2">Distributed Timers</p>
-          </section>
-        </section>
+		<div class="slides">
         <section>The Delayed `Delayed Work` Problem</section>
         <section>
-            <section>The Delayed</section>
-            <section>Vertical Slide 2</section>
+            <section>Delay execution for <code>X</code> amount of time</section>
+            <section>Exectue as soon as time has lapsed</section>
+			<section>Execute <em>Exactly</em> once</section>
+			<section>Ability to cancel execution</section>
         </section>
+		<section>
+			<h4>setTimeout / clearTimeout</h4>
+			<p class="fragment fade-up">Asynchronous</p>
+			<p class="fragment fade-up">Non-Blocking</p>
+			<p class="fragment fade-up">High Resolution (ms)</p>
+			<p class="fragment fade-up">Cancelable</p>
+			<p class="fragment fade-up"><em><strong>Exactly Once</strong></em> Execution Guarantees</p>
+			<aside class="notes">
+			The solution is staring you in the face
+			Does all of the things we want
+			</aside>
+		</section>
+		<section>
+			<div><strong>10 Lines of Code ( literally )</strong></div>
+			<pre>
+				<code data-trim datra-noescape class="js">
+				const timers = Object.create(null);
+				function set(id, amount, fn) {
+				  if (!timers[id]) {
+				    timers[id] = setTimeout( fn, amount ).unref();
+				  }
+				}
+
+				function cancel(id) {
+				  const ref = timers[id];
+				  return ref && clearTimeout( ref );
+				}
+				</code>
+			</pre>
+			<aside class="notes">
+			code is:
+			<ul>
+				<li>excplicit in what it does</li>
+				<li>easy to follow</li>
+				<li>to the point</li>
+			</ul>
+			A first year developer who has never seen javascript can understand
+			</aside>
+		</section>
+		<section>
+		Timers Live In memory
+		</section>
+		<section>
+			<p class="fragement" data-fragment-index="1"><img src="./img/skyring-inverted.png" style="border:0; background: transparent;"/></p>
+			<p class="fragment fade-in" data-fragment-index="2">Distributed Timers</p>
+		</section>
+		<section>
+			<section>
+				<h3>Hashring</h3>
+				<img src="./img/s01.png" style="border:0; background: transparent;"/>
+				<aside class="notes">
+				<ul>
+					<li>nodes are aligned in a hashing w/ persistent tcp connection</li>
+					<li>Each node responsible for a section of key</li>
+					<li>Given an KEY, know exactly which server is responsible</li>
+					<li>one network hop</li>
+				</ul>
+				</aside>
+			</section>
+			<section>
+				<h3>Join &amp; Rebalance</h3>
+				<img src="./img/s02.png" style="border:0; background: transparent;"/>
+				<aside class="notes">
+					<ul>
+						<li>when a new node joins the ring, who is responsible changes</li>
+						<li>automatically redistributes timers</li>
+					</ul>
+				</aside>
+			</section>
+			<section>
+				<h3>Leave &amp; Rebalance</h3>
+				<img src="./img/s03.png" style="border:0; background: transparent;"/>
+				<aside class="notes">
+					<ul>
+						<li>Leaving is tricky</li>
+						<li>No longer a member of the ring</li>
+						<li>NATS messaging layer</li>
+						<li>Nodes in NATS group - random distribution</li>
+						<li>business as usual</li>
+					</ul>
+				</aside>
+			</section>
+			<section>
+				<h3>Bird's eye view</h3>
+				<img src="./img/skyring-arch-inverted.png" style="border:0; background: transparent;"/>
+			</section>
+		</section>
+		<section>
+			<p><h3>DEMO</h3></p>
+		</section>
+		<section style="text-align: left;">
+			<h2>Eric Satterwhite</h2>
+			I work at Help.com - We do Node.js
+			<br/>
+			<br/>
+			<ul>
+				<li>codedependant / esatterwhite</li>
+				<li>website: codedependant.net</li>
+				<li>twitter: codedependant</li>
+				<li>github: github.com/esatterwhite</li>
+			</ul>
+			<h2>Skyring</h2>
+			<ul>
+				<li>github: esatterwhite/skyring</li>
+				<li>slides: esatterwhite/skyring-lightningtalk-01-17</li>
+			</ul>
+		</section>
       </div>
 		</div>
-
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
 
