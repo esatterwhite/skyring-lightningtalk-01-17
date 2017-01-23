@@ -24,13 +24,13 @@
   <body>
     <div class="reveal">
     <div class="slides">
-        <section>The Delayed `Delayed Work` Problem</section>
-        <section>
-            <section>Delay execution for <code>X</code> amount of time</section>
-            <section>Exectue as soon as time has lapsed</section>
-      <section>Execute <em>Exactly</em> once</section>
-      <section>Ability to cancel execution</section>
-        </section>
+      <section>The Delayed `Delayed Work` Problem</section>
+      <section>
+        <section>Delay execution for <code>X</code> amount of time</section>
+        <section>Exectue as soon as time has lapsed</section>
+        <section>Execute <em>Exactly</em> once</section>
+        <section>Ability to cancel execution</section>
+      </section>
     <section>
       <h4>setTimeout / clearTimeout</h4>
       <p class="fragment fade-up">Asynchronous</p>
@@ -74,25 +74,88 @@
     Timers Live In memory
     </section>
     <section>
-      <p class="fragement" data-fragment-index="1"><img src="./img/skyring-inverted.png" style="border:0; background: transparent;"/></p>
-      <p class="fragment fade-in" data-fragment-index="2">Distributed Timers</p>
+      <p class="fragement" data-fragment-index="1"><img src="./img/skyring-inverted.png" style="border:0; background: transparent; max-width: 960"/></p>
+      <p class="fragment fade-in" data-fragment-index="2">Distributed Timers - As A Service</p>
     </section>
+    
+    <section>
+      <section>
+        <h3>Set A Timer</h3>
+        <pre>
+          <code data-trim data-noescape class="bash">
+          curl -i -XPOST http://localhost:2300/timer -d '{
+            "timeout": 10000
+          , "data": "Hello!"
+          , "callback": {
+              "transport": "http"
+            , "uri": "http://some.domain.com/world"
+            , "method": "post"
+            }
+          }'
+          -H "Content-Type: application/json"
+          </code>
+        </pre>
+      </section>
+      <section>
+        <h4>Response</h4>
+        <pre>
+          <code data-trim data-noescape class="http">
+          HTTP/1.1 201 CREATED
+          location: /timer/4adb026b-6ef3-44a8-af16-4d6be0343ecf
+          Date: Fri, 23 Dec 2016 00:19:13 GMT
+          Connection: keep-alive
+          Content-Length: 0
+          </code>
+        </pre>
+      </section>
+    </section>
+
+    <section>
+      <section>
+        <h3>Cancel A Timer</h3>
+        <pre>
+          <code data-trim data-noescape class="bash">
+          curl -i -XDELETE http://localhost:2300/timer/4adb026b-6ef3-44a8-af16-4d6be0343ecf
+          </code>
+        </pre>
+      </section>
+      <section>
+        <h3>Response</h3>
+        <pre>
+          <code data-trim data-noescape class="http">
+          HTTP/1.1 202 Accepted
+          Date: Fri, 23 Dec 2016 00:22:12 GMT
+          Connection: keep-alive
+          Content-Length: 0
+          </code>
+        </pre>
+        <aside class="notes">
+          <ul>
+            <li>All relevant info in headers</li>
+            <li>easier to deal with</li>
+            <li>no payload is always faster</li>
+          <ul>
+        </aside>
+      </section>
+    </section>
+    
     <section>
       <section>
         <h3>Hashring</h3>
-        <img src="./img/s01.png" style="border:0; background: transparent;"/>
+        <img src="./img/s01.png" style="border:0; background: transparent; max-width: 80%"/>
         <aside class="notes">
         <ul>
           <li>nodes are aligned in a hashing w/ persistent tcp connection</li>
           <li>Each node responsible for a section of key</li>
           <li>Given an KEY, know exactly which server is responsible</li>
           <li>one network hop</li>
+          <li>true horizontal scale - no p2p / message bus</li>
         </ul>
         </aside>
       </section>
       <section>
         <h3>Join &amp; Rebalance</h3>
-        <img src="./img/s02.png" style="border:0; background: transparent;"/>
+        <img src="./img/s02.png" style="border:0; background: transparent; max-width: 80%"/>
         <aside class="notes">
           <ul>
             <li>when a new node joins the ring, who is responsible changes</li>
@@ -102,7 +165,7 @@
       </section>
       <section>
         <h3>Leave &amp; Rebalance</h3>
-        <img src="./img/s03.png" style="border:0; background: transparent;"/>
+        <img src="./img/s03.png" style="border:0; background: transparent; max-width: 80%"/>
         <aside class="notes">
           <ul>
             <li>Leaving is tricky</li>
@@ -115,7 +178,9 @@
       </section>
       <section>
         <h3>Bird's eye view</h3>
-        <img src="./img/skyring-arch-inverted.png" style="border:0; background: transparent;"/>
+        <img src="./img/skyring-arch-inverted.png" style="border:0; background: transparent; max-width: 75% "/>
+        <aside class="notes">
+        </aside>
       </section>
     </section>
     <section>
@@ -147,11 +212,10 @@
       // More info https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
         history: true,
-
+        width: 1280,
+        height: 700,
         // More info https://github.com/hakimel/reveal.js#dependencies
         dependencies: [
-          { src: 'plugin/markdown/marked.js' },
-          { src: 'plugin/markdown/markdown.js' },
           { src: 'plugin/notes/notes.js', async: true },
           { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
         ]
