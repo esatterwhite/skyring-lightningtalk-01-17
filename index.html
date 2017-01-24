@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>reveal.js</title>
+    <title>Skyring - Distributed Timers</title>
 
     <link rel="stylesheet" href="css/reveal.css">
     <link rel="stylesheet" href="css/theme/blood.css">
@@ -25,29 +25,38 @@
     <div class="reveal">
     <div class="slides">
       <section>
-      The Delayed `Delayed Work` Problem
+      The `Delayed Work` Problem
       <aside class="notes">
-      There is a recurring problem that every developer encounters
+        <ul>
+          <li>There is a recurring problem that every developer encounters</li>
+          <li>The general problem criteria are the same...</li>
+        </ul>
       </aside>
       </section>
+
       <section>
         <section>Delay execution of some code for <code>X</code> amount of time</section>
-        <section>Exectue as soon as time has lapsed <aside class="notes">accuracy is important</aside></section>
-        <section>Execute <em>Exactly</em> once</section>
         <section>
-          Ability to cancel execution
+          Exectue as soon as time has lapsed
+          <aside class="notes">
+            <p>accuracy is important - not ASAP</p>
+            <p>a MQ isn't enough</p>
+          </aside>
+        </section>
+        <section>Execute <em>Exactly</em> once <aside class="notes">timers provide this guaruntee</aside></section>
+        <section>Waiting for execution doesn't block everything else</section>
+        <section>
+          Ability to cancel pending execution
           <aside class="notes">
           example:
-          <p>
+          <br/>
           Ability to "unsend" an email
-          <ol>
-            <li>write nasty email to boss</li>
-            <li>accidentally hit send</li>
-            <li>delay send for 10 seconds</li>
-            <li>user hits "undo" -> cancel timer</li>
+            <ol>
+              <li>write nasty email to boss</li>
+              <li>accidentally hit send</li>
+              <li>delay send for 10 seconds</li>
+              <li>user hits "undo" -> cancel timer</li>
             </ol>
-          </ol>
-          </p>
           </aside>
         </section>
       </section>
@@ -60,25 +69,26 @@
         <p class="fragment fade-up">Cancelable</p>
         <p class="fragment fade-up"><em><strong>Exactly Once</strong></em> Execution Guarantees</p>
         <aside class="notes">
-        The solution is staring you in the face
-        Does all of the things we want
+        <p>The solution is staring you in the face</p>
+        <p>A timer does all of the things we want</p>
+        <p>you can probably see the code in your head</p>
         </aside>
       </section>
     
       <section>
         <div><strong>10 Lines of Code ( literally )</strong></div>
         <pre>
-          <code data-trim datra-noescape class="js">
-          const timers = Object.create(null);
+          <code data-trim data-noescape class="js">
+          const timers = new Map()
           function set(id, delay, fn) {
-            if (!timers[id]) {
-              timers[id] = setTimeout( fn, delay ).unref();
+            if (!timers.has(id)) {
+              timers.set(id, setTimeout( fn, delay ).unref());
             }
           }
-
           function cancel(id) {
-            const ref = timers[id];
-            return ref && clearTimeout( ref );
+            const ref = timers.get(id);
+            clearTimeout( ref );
+            return timers.delete(id);
           }
           </code>
         </pre>
@@ -109,7 +119,7 @@
     
       <section>
         <p class="fragement" data-fragment-index="1">
-          <img src="./img/skyring-inverted.png" style="border:0; background: transparent; max-width: 960"/>
+          <img src="./img/skyring-inverted.png" style="border:0; background: transparent; max-width: 960" alt="skyring logo"/>
         </p>
         <p class="fragment fade-in" data-fragment-index="2">
           Distributed Timers - As A Service
@@ -137,6 +147,12 @@
             -H "Content-Type: application/json"
             </code>
           </pre>
+          <aside class="notes">
+            <ul>
+              <li>Timer execution sends a message over a specified transport</li>
+              <li>http ( for now )</li>
+            </ul>
+          </aside>
         </section>
         <section>
           <h4>Response</h4>
@@ -154,7 +170,7 @@
               <li>All relevant info in headers</li>
               <li>easier to deal with</li>
               <li>no payload is always faster</li>
-            <ul>
+            </ul>
           </aside>
         </section>
       </section>
@@ -185,10 +201,10 @@
       <section>
         <section>
           <h3>Hashring</h3>
-          <img src="./img/s01.png" style="border:0; background: transparent; max-width: 80%"/>
+          <img src="./img/s01.png" style="border:0; background: transparent; max-width: 80%" alt="hashring-1"/>
           <aside class="notes">
           <ul>
-            <li>nodes are aligned in a hashing w/ persistent tcp connection</li>
+            <li>nodes are aligned in consistent hashing w/ persistent tcp connection</li>
             <li>Each node responsible for a section of key</li>
             <li>Given an KEY, know exactly which server is responsible</li>
             <li>one network hop</li>
@@ -200,7 +216,7 @@
 
         <section>
           <h3>Join &amp; Rebalance</h3>
-          <img src="./img/s02.png" style="border:0; background: transparent; max-width: 80%"/>
+          <img src="./img/s02.png" style="border:0; background: transparent; max-width: 80%" alt="hashring join"/>
           <aside class="notes">
             <ul>
               <li>when a new node joins the ring, who is responsible changes</li>
@@ -211,7 +227,7 @@
 
         <section>
           <h3>Leave &amp; Rebalance</h3>
-          <img src="./img/s03.png" style="border:0; background: transparent; max-width: 80%"/>
+          <img src="./img/s03.png" style="border:0; background: transparent; max-width: 80%" alt="hashring leave"/>
           <aside class="notes">
             <ul>
               <li>Leaving is tricky</li>
@@ -225,18 +241,18 @@
         
         <section>
           <h3>Bird's eye view</h3>
-          <img src="./img/skyring-arch-inverted.png" style="border:0; background: transparent; max-width: 75% "/>
+          <img src="./img/skyring-arch-inverted.png" style="border:0; background: transparent; max-width: 75%" alt="skyring arch"/>
           <aside class="notes">
           </aside>
         </section>
       </section>
 
       <section>
-        <p><h3>DEMO</h3></p>
+        <h3>DEMO</h3>
       </section>
       
       <section style="text-align: left;">
-        <h2>Eric Satterwhite <img src="./img/help-logo.png" style="border: 0; display: inline-block; background-color: transparent; width: 175px" /></h2>
+        <h2>Eric Satterwhite <img src="./img/help-logo.png" style="border: 0; display: inline-block; background-color: transparent; width: 175px" alt="help.com" /></h2>
         I work at Help.com - We do Node.js
         <br/>
         <br/>
